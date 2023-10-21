@@ -1,0 +1,28 @@
+{
+  "name": "backrestaurantreact",
+  "version": "1.0.0",
+  "description": "Backend Restaurant",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Back",
+    "react"
+  ],
+  "author": "Paul Guillen",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "firebase": "^10.4.0",
+    "firebase-admin": "^11.10.1",
+    "http": "^0.0.1-security",
+    "morgan": "^1.10.0",
+    "rembg": "^1.0.6",
+    "request": "^2.88.2",
+    "rn-fetch-blob": "^0.12.0",
+    "stripe": "^13.9.0"
+  }
+}
