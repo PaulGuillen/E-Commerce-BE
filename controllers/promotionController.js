@@ -82,7 +82,6 @@ module.exports = {
 
         await productsCollection.doc(id).set(productData);
       }
-      
       res
         .status(HTTP_STATUS_CODES.OK)
         .json({ message: "Oferta principal modificada o creada", id });
@@ -96,32 +95,28 @@ module.exports = {
 
   async uploadImage(req, res, next) {
     try {
-      const { imageProductBase64 } = req.body;
+      const imageLocalUrl = req.body.imageInBase64; 
+      const imageBuffer = Buffer.from(imageLocalUrl, 'base64');
+  
       const bucket = admin.storage().bucket();
   
-      const imageBuffer = Buffer.from(imageProductBase64, 'base64');
-      const fileName = `image_${Date.now()}.jpg`;
-      const file = bucket.file(fileName);
-      const fileStream = file.createWriteStream({
+      const uniqueFileName = `${Date.now()}_${Math.floor(Math.random() * 1000000)}.jpg`;
+  
+      const file = bucket.file(uniqueFileName);
+  
+      await file.save(imageBuffer, {
         metadata: {
-          contentType: 'image/jpeg',
+          contentType: 'image/jpeg', 
         },
       });
-      fileStream.end(imageBuffer);
   
-      const [url] = await file.getSignedUrl({
-        action: 'read',
-        expires: '01-01-2100',
-      });
+      const [publicUrl] = await file.getSignedUrl({ action: 'read', expires: '01-01-2030' });
   
-      // Append a timestamp to the URL
-      const imageUrlWithTimestamp = `${url}?timestamp=${Date.now()}`;
-  
-      // Return the modified URL as a response
-      res.status(200).json({ imageUrl: imageUrlWithTimestamp });
+      // Responde al cliente con la URL pública
+      res.status(200).json({ url: publicUrl });
     } catch (error) {
-      console.error('Error al subir la imagen:', error);
-      res.status(500).json({ error: 'Ocurrió un error en el servidor' });
+      console.error('Error al subir la imagen a Firebase Storage:', error);
+      res.status(500).json({ error: 'Error al subir la imagen' });
     }
   },
   
