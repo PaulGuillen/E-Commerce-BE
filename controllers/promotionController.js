@@ -82,6 +82,7 @@ module.exports = {
 
         await productsCollection.doc(id).set(productData);
       }
+      
       res
         .status(HTTP_STATUS_CODES.OK)
         .json({ message: "Oferta principal modificada o creada", id });
