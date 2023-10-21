@@ -95,20 +95,27 @@ module.exports = {
 
   async uploadImage(req, res, next) {
     try {
-      const imageLocalUrl = req.body.imageInBase64; 
-      const imageBuffer = Buffer.from(imageLocalUrl, 'base64');
-  
+      const { fileName, imageInBase64 } = req.body;
+      const imageBuffer = Buffer.from(imageInBase64, 'base64');
       const bucket = admin.storage().bucket();
+      
+      const file = bucket.file(fileName);
+      const [fileExists] = await file.exists();
   
-      const uniqueFileName = `${Date.now()}_${Math.floor(Math.random() * 1000000)}.jpg`;
-  
-      const file = bucket.file(uniqueFileName);
-  
-      await file.save(imageBuffer, {
-        metadata: {
-          contentType: 'image/jpeg', 
-        },
-      });
+      if (fileExists) {
+        await file.save(imageBuffer, {
+          metadata: {
+            contentType: 'image/jpeg',
+          },
+        });
+      } else {
+        await file.save(imageBuffer, {
+          metadata: {
+            contentType: 'image/jpeg',
+          },
+          validation: 'md5',
+        });
+      }
   
       const [publicUrl] = await file.getSignedUrl({ action: 'read', expires: '01-01-2030' });
   
@@ -119,6 +126,5 @@ module.exports = {
       res.status(500).json({ error: 'Error al subir la imagen' });
     }
   },
-  
   
 };
