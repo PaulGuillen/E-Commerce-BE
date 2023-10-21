@@ -98,10 +98,11 @@ module.exports = {
       const { fileName, imageInBase64 } = req.body;
       const imageBuffer = Buffer.from(imageInBase64, 'base64');
       const bucket = admin.storage().bucket();
-      
-      const file = bucket.file(fileName);
+      const folderName = 'mainOffer/';
+
+      const file = bucket.file(`${folderName}${fileName}`);
       const [fileExists] = await file.exists();
-  
+
       if (fileExists) {
         await file.save(imageBuffer, {
           metadata: {
@@ -116,15 +117,17 @@ module.exports = {
           validation: 'md5',
         });
       }
-  
+
       const [publicUrl] = await file.getSignedUrl({ action: 'read', expires: '01-01-2030' });
-  
-      // Responde al cliente con la URL pública
-      res.status(200).json({ url: publicUrl });
+
+      res.status(200).json({
+        url: publicUrl,
+        message: 'Imagen subida correctamente'
+      });
     } catch (error) {
       console.error('Error al subir la imagen a Firebase Storage:', error);
       res.status(500).json({ error: 'Error al subir la imagen' });
     }
   },
-  
+
 };
