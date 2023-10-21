@@ -1,20 +1,8 @@
 const admin = require("firebase-admin");
 const HTTP_STATUS_CODES = require("../utils/httpStatusCodes");
+const { generateAddressRandomID } = require("../utils/Util");
 
 const db = admin.firestore();
-
-function generateAddressRandomID(n) {
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let randomID = "";
-
-  for (let i = 0; i < n; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    randomID += characters.charAt(randomIndex);
-  }
-
-  return randomID;
-}
 
 module.exports = {
   async createAddress(req, res, next) {

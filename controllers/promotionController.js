@@ -1,6 +1,82 @@
 const admin = require("firebase-admin");
 const HTTP_STATUS_CODES = require("../utils/httpStatusCodes");
 const db = admin.firestore();
+const axios = require('axios');
+const FormData = require("form-data");
+const fs = require("fs");
+const { generateRandomUUID } = require("../utils/Util");
+
+function bufferToBase64(buffer) {
+  const base64String = buffer.toString('base64');
+  return base64String;
+};
+
+async function updateImage(fileName, base64Image) {
+  const imageBuffer = Buffer.from(base64Image, 'base64');
+  const bucket = admin.storage().bucket();
+  const folderName = 'mainOffer';
+
+  const file = bucket.file(`${folderName}/${fileName}`);
+  const [fileExists] = await file.exists();
+
+  if (fileExists) {
+    await file.save(imageBuffer, {
+      metadata: {
+        contentType: 'image/jpeg',
+      },
+    });
+  } else {
+    await file.save(imageBuffer, {
+      metadata: {
+        contentType: 'image/jpeg',
+      },
+      validation: 'md5',
+    });
+  }
+
+  const [publicUrl] = await file.getSignedUrl({ action: 'read', expires: '01-01-2030' }); // Usar await para esperar la resolución de la promesa
+
+  return publicUrl;
+}
+
+
+async function removeImageBackground(imageUrl, fileName) {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("size", "auto");
+    formData.append("image_url", imageUrl);
+
+    axios({
+      method: "post",
+      url: "https://api.remove.bg/v1.0/removebg",
+      data: formData,
+      responseType: "arraybuffer",
+      headers: {
+        ...formData.getHeaders(),
+        "X-Api-Key": "dH5kMhXQQLWLN5k5o2agsBoY",
+      },
+      encoding: null,
+    })
+      .then((response) => {
+        if (response.status != 200) {
+          console.error("Error:", response.status, response.statusText);
+          reject(new Error("Error al quitar el fondo de la imagen"));
+        } else {
+          const base64Image = bufferToBase64(response.data);
+          if (base64Image) {
+            const newImageUrl = updateImage(fileName, base64Image);
+            resolve(newImageUrl);
+          } else {
+            reject(new Error("No se pudo convertir la imagen a base64"));
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Request failed:", error);
+        reject(error);
+      });
+  });
+};
 
 module.exports = {
   async allPromotions(req, res, next) {
@@ -72,9 +148,13 @@ module.exports = {
   async createMainPromotion(req, res, next) {
     try {
       const productsCollection = db.collection("MainPromotion");
+
       const productData = req.body;
       const id = productData.id;
       const existingDoc = await productsCollection.doc(id).get();
+
+      const randomUID = generateRandomUUID(18);
+      productData.productID = randomUID;
 
       if (existingDoc.exists) {
         await productsCollection.doc(id).update(productData);
@@ -120,14 +200,21 @@ module.exports = {
 
       const [publicUrl] = await file.getSignedUrl({ action: 'read', expires: '01-01-2030' });
 
-      res.status(200).json({
-        url: publicUrl,
-        message: 'Imagen subida correctamente'
-      });
+      const newImageUrl = await removeImageBackground(publicUrl, fileName);
+
+      if (newImageUrl) {
+        res.status(200).json({
+          url: newImageUrl,
+          message: 'Imagen subida correctamente'
+        });
+      } else {
+        res.status(500).json({ error: 'Error al subir la imagen' });
+      }
     } catch (error) {
       console.error('Error al subir la imagen a Firebase Storage:', error);
       res.status(500).json({ error: 'Error al subir la imagen' });
     }
-  },
+  }
+
 
 };
