@@ -14,4 +14,7 @@ module.exports = (app) => {
   app.post("/promotion/createMainPromotion", PromotionController.createMainPromotion);
 
   app.post("/image/uploadImage", PromotionController.uploadImage);
+
+  app.post("/category/createCategory", PromotionController.createCategories);
+
 };

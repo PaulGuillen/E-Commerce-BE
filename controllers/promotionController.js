@@ -214,7 +214,30 @@ module.exports = {
       console.error('Error al subir la imagen a Firebase Storage:', error);
       res.status(500).json({ error: 'Error al subir la imagen' });
     }
-  }
+  },
 
+  async createCategories(req, res, next) {
+    try {
+      const categoriesCollection = db.collection("Categories");
+      const categoryData = req.body;
+
+      const docRef = await categoriesCollection.add(categoryData);
+
+      const categoryID = docRef.id;
+
+      categoryData.categoryID = categoryID;
+
+      await docRef.update({ categoryID });
+
+      res
+        .status(HTTP_STATUS_CODES.OK)
+        .json({ message: "Categoria creada", categoryID });
+    } catch (error) {
+      console.error("Error al crear la categoria:", error);
+      res
+        .status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR)
+        .json({ message: "Error al crear la categoria" });
+    }
+  },
 
 };
