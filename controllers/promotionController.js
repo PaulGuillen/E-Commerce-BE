@@ -53,7 +53,7 @@ async function removeImageBackground(imageUrl, fileName) {
       responseType: "arraybuffer",
       headers: {
         ...formData.getHeaders(),
-        "X-Api-Key": "dH5kMhXQQLWLN5k5o2agsBoY",
+        "X-Api-Key": "8BoEgvt7Jxot9TiK9haWasth",
       },
       encoding: null,
     })
