@@ -211,4 +211,23 @@ module.exports = {
       });
     }
   },
+
+  async getOrdersPayed(req, res, next) {
+    try {
+      const ordersCollection = db.collection("Orders");
+
+      const querySnapshot = await ordersCollection.get();
+      const orders = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        orders.push(data);
+      });
+      res.status(HTTP_STATUS_CODES.OK).json(orders);
+    } catch (error) {
+      console.error("Error al consultar la colección Orders:", error);
+      res
+        .status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR)
+        .json({ message: "Error al consultar la colección Orders" });
+    }
+  },
 };

@@ -10,14 +10,15 @@ module.exports = (app) => {
    * GET ROUTES
    */
   app.get("/order/allOrdersInBag", OrderController.getProductsInBag);
+  app.get("/order/allOrdersPayed", OrderController.getOrdersPayed);
 
   /*
    * DELETE ROUTES
    */
   app.delete("/order/deleteProductInBag", OrderController.deleteProductInBag);
 
-    /*
-   * DELETE ROUTES
-   */
-    app.put("/order/updateProductInBag", OrderController.updateProductsInBag);
+  /*
+ * DELETE ROUTES
+ */
+  app.put("/order/updateProductInBag", OrderController.updateProductsInBag);
 };
