@@ -7,35 +7,44 @@ module.exports = {
   async createOrders(req, res, next) {
     try {
       const orderData = req.body;
-      const userUID = orderData.userUID;
-
-      if (typeof userUID === "string" && userUID.trim() !== "") {
-        const orderRef = db.collection("Orders").doc(userUID);
-        const userDoc = await orderRef.get();
-        const orderDataInside = userDoc.exists ? userDoc.data() : {};
-
-        const listOrders = orderData.orders || [];
-
-        listOrders.forEach((order) => {
-          if (order.orderID && typeof order.orderID === "string") {
-            orderDataInside[order.orderID] = order;
-          } else {
-            const orderID = uuidv4();
-            orderDataInside[orderID] = order;
-          }
-        });
-
-        await orderRef.set(orderDataInside);
-
-        res.status(HTTP_STATUS_CODES.CREATED).json({
-          message: "Órdenes creadas exitosamente",
-          userUID: userUID,
-        });
-      } else {
-        res
-          .status(HTTP_STATUS_CODES.BAD_REQUEST)
-          .json({ message: "userUID no válido." });
+      const orderRef = db.collection("Orders");
+  
+      // Extract order details
+      const {
+        orderID,
+        addressSelected,
+        fullName,
+        isPayed,
+        listProducts,
+        orderDate,
+        phoneNumber,
+        totalPrice,
+        userUID,
+      } = orderData;
+  
+      // Validate the existence of required data
+      if (!orderID || !addressSelected || !fullName || !listProducts || !orderDate || !phoneNumber || !totalPrice || !userUID) {
+        throw new Error("Invalid order data. Missing required fields.");
       }
+  
+      // Create a reference to the order document using orderID
+      const orderDocRef = orderRef.doc(orderID);
+  
+      // Set the order data in the document
+      await orderDocRef.set({
+        addressSelected,
+        fullName,
+        isPayed,
+        listProducts,
+        orderDate,
+        phoneNumber,
+        totalPrice,
+        userUID,
+      });
+  
+      res.status(HTTP_STATUS_CODES.CREATED).json({
+        message: "Órdenes creadas exitosamente",
+      });
     } catch (error) {
       console.error("Error al crear las órdenes en Firestore:", error);
       res
@@ -43,7 +52,7 @@ module.exports = {
         .json({ message: "Error al crear las órdenes." });
     }
   },
-
+  
   async getOrders(req, res, next) {
     try {
       const { uid } = req.query;
@@ -56,7 +65,7 @@ module.exports = {
           const userData = userDoc.data();
 
           const orderList = Object.values(userData);
-          
+
           if (orderList.length > 0) {
             res.status(HTTP_STATUS_CODES.OK).json(orderList);
           } else {
