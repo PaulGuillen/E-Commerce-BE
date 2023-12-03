@@ -56,23 +56,28 @@ module.exports = {
   async getOrders(req, res, next) {
     try {
       const { uid } = req.query;
-
+  
       if (typeof uid === "string" && uid.trim() !== "") {
-        const userDocRef = db.collection("Orders").doc(uid);
-        const userDoc = await userDocRef.get();
-
-        if (userDoc.exists) {
-          const userData = userDoc.data();
-
-          const orderList = Object.values(userData);
-
-          if (orderList.length > 0) {
-            res.status(HTTP_STATUS_CODES.OK).json(orderList);
-          } else {
-            res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
-              message: "No tienes ordenes",
+        const ordersRef = db.collection("Orders");
+        const querySnapshot = await ordersRef.get();
+  
+        const matchingOrders = [];
+  
+        querySnapshot.forEach((doc) => {
+          const orderData = doc.data();
+          const orderID = doc.id;
+  
+          // Check if the order has the specified userUID
+          if (orderData && orderData.userUID === uid) {
+            matchingOrders.push({
+              orderID,
+              ...orderData,
             });
           }
+        });
+  
+        if (matchingOrders.length > 0) {
+          res.status(HTTP_STATUS_CODES.OK).json(matchingOrders);
         } else {
           res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
             message: "No tienes ordenes",
@@ -90,7 +95,8 @@ module.exports = {
       });
     }
   },
-
+  
+  
   async cleanProductInBag(req, res, next) {
     try {
       const orderData = req.body;
