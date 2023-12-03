@@ -11,7 +11,7 @@ module.exports = (app) => {
    */
   app.get("/order/allOrdersInBag", OrderController.getProductsInBag);
   app.get("/order/allOrdersPayed", OrderController.getOrdersPayed);
-
+  app.get("/order/allOrdersAdminRole", OrderController.allOrdersAdminRole);
   /*
    * DELETE ROUTES
    */
