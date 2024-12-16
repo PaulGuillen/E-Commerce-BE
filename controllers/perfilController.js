@@ -3,7 +3,7 @@ const HTTP_STATUS_CODES = require("../utils/httpStatusCodes");
 const db = admin.firestore();
 
 module.exports = {
-  async getUser(req, res, next) {
+  async getUser(req, res) {
     try {
       const { uid } = req.query;
 
